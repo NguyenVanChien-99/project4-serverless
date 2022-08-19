@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk'
-import * as AWSXRay from 'aws-xray-sdk'
+const AWSXRay = require('aws-xray-sdk');
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { createLogger } from '../utils/logger'
 import { TodoItem } from '../models/TodoItem'
@@ -7,7 +7,6 @@ import { TodoUpdate } from '../models/TodoUpdate';
 
 const XAWS = AWSXRay.captureAWS(AWS)
 const logger = createLogger('TodosAccess')
-const imageIdIndex = process.env.IMAGE_ID_INDEX
 
 export class TodoAccess {
 
@@ -19,28 +18,30 @@ export class TodoAccess {
     async getTodoById(todoId: String): Promise<TodoItem> {
         logger.info("Get all todo item from dynamodb");
 
-        const result = await this.docClient.scan({
+        const result = await this.docClient.get({
             TableName: this.todosTable,
-            IndexName: imageIdIndex,
-            KeyConditionExpression: 'todoId = :todoId',
-            ExpressionAttributeValues: {
-                ':todoId': todoId
-            }
+            Key:{
+                todoId: todoId
+            },
         }).promise()
 
-        if (result.Count == 0) {
+        if (!result.Item) {
             throw new Error(`Todo not found with id ${todoId}`)
         }
 
-        const items = result.Items[0]
+        const items = result.Item
         return items as TodoItem
     }
 
-    async getAllTodos(): Promise<TodoItem[]> {
+    async getAllTodos(userId:string): Promise<TodoItem[]> {
         logger.info("Get all todo item from dynamodb");
 
         const result = await this.docClient.scan({
-            TableName: this.todosTable
+            TableName: this.todosTable,
+            FilterExpression: 'userId = :userId',
+            ExpressionAttributeValues: {
+                ':userId': userId
+            }
         }).promise()
 
         const items = result.Items
@@ -57,24 +58,51 @@ export class TodoAccess {
         return todo
     }
 
-    async updateTodo(todoId: String, todo: TodoUpdate,attachmentUrl:String) {
+    async updateTodo(todoId: String, todo: TodoUpdate) {
         logger.info(`Update todo item to dynamodb ${todoId}`, todo);
         await this.docClient.update({
             TableName: this.todosTable,
             Key: {
                 todoId: todoId
             },
-            UpdateExpression: "set name = :name , dueDate = :dueDate , done = :done , attachmentUrl = : url",
+            UpdateExpression: "set name = :name , dueDate = :dueDate , done = :done",
             ExpressionAttributeValues: {
                 ":name": todo.name,
                 ":dueDate": todo.dueDate,
                 ":done": todo.done,
-                ":url": attachmentUrl
             },
             ReturnValues: "UPDATED_NEW"
         }).promise()
 
         return 
+    }
+
+    async updateTodoAttachmentUrl(todoId: String, attachmentUrl:string) {
+        logger.info(`Update todo attachment ${todoId}`);
+        await this.docClient.update({
+            TableName: this.todosTable,
+            Key: {
+                todoId: todoId
+            },
+            UpdateExpression: "attachmentUrl = :attachmentUrl",
+            ExpressionAttributeValues: {
+                ":attachmentUrl": attachmentUrl,
+            },
+            ReturnValues: "UPDATED_NEW"
+        }).promise()
+
+        return 
+    }
+
+    async deleteTodo(todoId :string){
+        logger.info(`Start delete todo from dynamodb `)
+        await this.docClient.delete({
+            TableName: this.todosTable,
+            Key: {
+                todoId: todoId
+            },
+            ReturnValues:"DELETED"
+        }).promise();
     }
 }
 

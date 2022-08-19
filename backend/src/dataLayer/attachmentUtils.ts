@@ -9,12 +9,14 @@ const s3 = new XAWS.S3({
     signatureVersion: 'v4'
 })
 
-// TODO: Implement the fileStogare logic
-
 export function generatePresignedUrl(imageId: string) {
     return s3.getSignedUrl('putObject', {
         Bucket: bucketName,
         Key: imageId,
         Expires: urlExpiration
     })
+}
+
+export function getAttachmentUrl(imageId:string){
+    return `https://${this.bucketName}.s3.amazonaws.com/${imageId}`
 }

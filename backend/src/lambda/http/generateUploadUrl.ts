@@ -5,11 +5,11 @@ import * as middy from 'middy'
 import * as uuid from 'uuid'
 import { cors, httpErrorHandler } from 'middy/middlewares'
 
-import { createAttachmentPresignedUrl } from '../../businessLogic/todos'
-import { getUserId } from '../utils'
-import { generatePresignedUrl } from '../../helpers/attachmentUtils'
-import { TodoAccess } from '../../helpers/todosAcess'
+import { generatePresignedUrl } from '../../dataLayer/attachmentUtils'
+import { TodoAccess } from '../../dataLayer/todosAcess'
 import { createLogger } from '../../utils/logger'
+import { updateTodoAttachmentUrl } from '../../businessLogic/todos'
+import { getUserId } from '../utils'
 
 
 const todoAccess = new TodoAccess();
@@ -31,9 +31,34 @@ export const handler = middy(
       }
     }
 
+    // Write your code here
+    let userId:string
+    try{
+      userId= getUserId(event);
+    }catch(err){
+      return {
+        statusCode: 401,
+        body: JSON.stringify({
+          error : `Invalid token`
+        })
+      }
+    }
+
     const imageId = uuid.v4()
 
     const url = generatePresignedUrl(imageId)
+
+    try {
+      //update item attachment url
+      await updateTodoAttachmentUrl(todoId,userId,url)
+    } catch (error) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({
+          error:`Fail to update attachment URL ,error ${error}`
+        })
+      }
+    }
 
     return {
       statusCode: 200,
@@ -49,7 +74,7 @@ export const handler = middy(
 function validateTodoItem(todoId: String) {
   if (!todoId || todoId.trim() === "") {
     return {
-      statusCode: 200,
+      statusCode: 400,
       body: JSON.stringify({
         error: "Invalid todo id"
       })
