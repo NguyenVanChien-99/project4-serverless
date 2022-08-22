@@ -32,17 +32,7 @@ export const handler = middy(
     }
 
     // Write your code here
-    let userId:string
-    try{
-      userId= getUserId(event);
-    }catch(err){
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          error : `Invalid token`
-        })
-      }
-    }
+    const userId=getUserId(event);
 
     const imageId = uuid.v4()
 

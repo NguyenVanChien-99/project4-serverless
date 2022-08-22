@@ -11,17 +11,7 @@ import { getAllTodos } from '../../businessLogic/todos';
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     // Write your code here
-    let userId:string
-    try{
-      userId= getUserId(event);
-    }catch(err){
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          error : `Invalid token`
-        })
-      }
-    }
+    const userId=getUserId(event);
 
     const todos =await getAllTodos(userId);
 

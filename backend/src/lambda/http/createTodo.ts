@@ -30,17 +30,7 @@ export const handler = middy(
       }
     }
 
-    let userId:string
-    try{
-      userId= getUserId(event);
-    }catch(err){
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          error : `Invalid token`
-        })
-      }
-    }
+    const userId=getUserId(event);
     logger.info(`User ${userId} create new todo item ${newTodo}`)
     try {
       const todoItem =await createTodo(newTodo,userId)
