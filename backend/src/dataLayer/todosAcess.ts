@@ -15,13 +15,14 @@ export class TodoAccess {
         private readonly todosTable = process.env.TODOS_TABLE) {
     }
 
-    async getTodoById(todoId: String): Promise<TodoItem> {
-        logger.info("Get all todo item from dynamodb");
+    async getTodoById(todoId: String,userId :String): Promise<TodoItem> {
+        logger.info("Get todo item by id from dynamodb");
 
         const result = await this.docClient.get({
             TableName: this.todosTable,
             Key:{
-                todoId: todoId
+                "todoId": todoId,
+                "userId": userId
             },
         }).promise()
 
@@ -36,9 +37,9 @@ export class TodoAccess {
     async getAllTodos(userId:string): Promise<TodoItem[]> {
         logger.info("Get all todo item from dynamodb");
 
-        const result = await this.docClient.scan({
+        const result = await this.docClient.query({
             TableName: this.todosTable,
-            FilterExpression: 'userId = :userId',
+            KeyConditionExpression: 'userId = :userId',
             ExpressionAttributeValues: {
                 ':userId': userId
             }
@@ -58,12 +59,13 @@ export class TodoAccess {
         return todo
     }
 
-    async updateTodo(todoId: String, todo: TodoUpdate) {
+    async updateTodo(todoId: String,userId :String, todo: TodoUpdate) {
         logger.info(`Update todo item to dynamodb ${todoId}`, todo);
         await this.docClient.update({
             TableName: this.todosTable,
             Key: {
-                todoId: todoId
+                "todoId": todoId,
+                "userId": userId
             },
             UpdateExpression: "set name = :name , dueDate = :dueDate , done = :done",
             ExpressionAttributeValues: {
@@ -77,14 +79,15 @@ export class TodoAccess {
         return 
     }
 
-    async updateTodoAttachmentUrl(todoId: String, attachmentUrl:string) {
-        logger.info(`Update todo attachment ${todoId}`);
+    async updateTodoAttachmentUrl(todoId: String,userId :String, attachmentUrl:string) {
+        logger.info(`Update todo attachment to dynamodb ${todoId}`);
         await this.docClient.update({
             TableName: this.todosTable,
             Key: {
-                todoId: todoId
+                "todoId": todoId,
+                "userId": userId
             },
-            UpdateExpression: "attachmentUrl = :attachmentUrl",
+            UpdateExpression: "set attachmentUrl = :attachmentUrl",
             ExpressionAttributeValues: {
                 ":attachmentUrl": attachmentUrl,
             },
@@ -94,14 +97,14 @@ export class TodoAccess {
         return 
     }
 
-    async deleteTodo(todoId :string){
+    async deleteTodo(todoId :string,userId :String){
         logger.info(`Start delete todo from dynamodb `)
         await this.docClient.delete({
             TableName: this.todosTable,
             Key: {
-                todoId: todoId
-            },
-            ReturnValues:"DELETED"
+                "todoId": todoId,
+                "userId": userId
+            }
         }).promise();
     }
 }

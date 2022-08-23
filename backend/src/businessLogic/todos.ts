@@ -35,13 +35,13 @@ export async function deleteTodo(
   itemId :string,
   userId: string
 ) {
-    const item = todoAccess.getTodoById(itemId)
+    const item = todoAccess.getTodoById(itemId,userId)
     logger.info(`Delete item :${item}`)
     if((await item).userId!==userId){
       logger.error(`User ${userId} cannot perform this action`)
       throw new Error(`User ${userId} cannot perform this action`)
     }
-    await todoAccess.deleteTodo(itemId);
+    await todoAccess.deleteTodo(itemId,userId);
 }
 
 export async function updateTodo(
@@ -49,25 +49,24 @@ export async function updateTodo(
   userId: string,
   updatedTodo :UpdateTodoRequest
 ) {
-    const item = todoAccess.getTodoById(itemId)
-    logger.info(`Delete item :${item}`)
+    const item = todoAccess.getTodoById(itemId,userId)
+    logger.info(`Update item :${JSON.stringify(item)}`)
     if((await item).userId!==userId){
       logger.error(`User ${userId} cannot perform this action`)
       throw new Error(`User ${userId} cannot perform this action`)
     }
-    await todoAccess.updateTodo(itemId,updatedTodo as TodoUpdate)
+    await todoAccess.updateTodo(itemId,userId,updatedTodo as TodoUpdate)
 }
 
 export async function updateTodoAttachmentUrl(
-  itemId :string,
+  todoItem :TodoItem,
   userId: string,
   attachmentUrl:string
 ) {
-    const item = todoAccess.getTodoById(itemId)
-    logger.info(`Delete item :${item}`)
-    if((await item).userId!==userId){
+    logger.info(`Update todo attachment url :${JSON.stringify(todoItem)}`)
+    if(todoItem.userId!==userId){
       logger.error(`User ${userId} cannot perform this action`)
       throw new Error(`User ${userId} cannot perform this action`)
     }
-    await todoAccess.updateTodoAttachmentUrl(itemId,attachmentUrl)
+    await todoAccess.updateTodoAttachmentUrl(todoItem.todoId,userId,attachmentUrl)
 }

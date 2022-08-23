@@ -36,7 +36,7 @@ export const handler = middy(
       const todoItem =await createTodo(newTodo,userId)
       return {
         statusCode: 201,
-        body: JSON.stringify(todoItem)
+        body: JSON.stringify({item:todoItem})
       }
     } catch (err) {
       logger.error(`Fail to create new todo , error ${err}`)

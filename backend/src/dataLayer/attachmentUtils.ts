@@ -2,7 +2,7 @@ import * as AWS from 'aws-sdk'
 import * as AWSXRay from 'aws-xray-sdk'
 
 const XAWS = AWSXRay.captureAWS(AWS)
-const bucketName = process.env.IMAGES_S3_BUCKET
+const bucketName = process.env.ATTACHMENT_S3_BUCKET
 const urlExpiration = process.env.SIGNED_URL_EXPIRATION
 
 const s3 = new XAWS.S3({
@@ -10,13 +10,14 @@ const s3 = new XAWS.S3({
 })
 
 export function generatePresignedUrl(imageId: string) {
+    console.log(bucketName);
     return s3.getSignedUrl('putObject', {
         Bucket: bucketName,
         Key: imageId,
-        Expires: urlExpiration
+        Expires: Number(urlExpiration)
     })
 }
 
 export function getAttachmentUrl(imageId:string){
-    return `https://${this.bucketName}.s3.amazonaws.com/${imageId}`
+    return `https://${bucketName}.s3.amazonaws.com/${imageId}`
 }
