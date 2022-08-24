@@ -171,7 +171,7 @@ logger.info('User was authorized', {
 # Postman
 
 
-![Alt text](images/postman.png.png?raw=true "Postman Success")
+![Alt text](images/postman.png?raw=true "Postman Success")
 
 # How to run the application
 
